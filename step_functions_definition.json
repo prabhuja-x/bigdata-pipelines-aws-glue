@@ -1,0 +1,34 @@
+{
+  "Comment": "ETL Pipeline for E-commerce Transactions",
+  "StartAt": "StartGlueJob",
+  "States": {
+    "StartGlueJob": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::glue:startJobRun.sync",
+      "Parameters": {
+        "JobName": "YourEcommerceGlueJobName",
+        "Arguments": {
+          "--S3_INPUT_PATH.$": "$.input.s3InputPath",
+          "--S3_OUTPUT_PATH.$": "$.input.s3OutputPath",
+          "--CURRENCY_RATES_PATH.$": "$.input.currencyRatesPath",
+          "--PRODUCT_CATEGORIES_PATH.$": "$.input.productCategoriesPath"
+        }
+      },
+      "Catch": [
+        {
+          "ErrorEquals": [ "States.ALL" ],
+          "Next": "ETLFailed"
+        }
+      ],
+      "Next": "ETLSuccess"
+    },
+    "ETLFailed": {
+      "Type": "Fail",
+      "Cause": "ETL Pipeline failed",
+      "Error": "Glue Job or subsequent step failed"
+    },
+    "ETLSuccess": {
+      "Type": "Succeed"
+    }
+  }
+}
